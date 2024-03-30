@@ -1,0 +1,29 @@
+/* Targeting all buttons */
+.stButton > button {
+  border: 2px solid #4caf50;
+  background-color: #4caf50;
+  color: white;
+  padding: 10px 24px;
+  cursor: pointer;
+  font-size: 18px;
+}
+
+/* Hover state for buttons */
+.stButton > button:hover {
+  background-color: white;
+  color: #4caf50;
+} 
+
+div[data-testid="stSidebarContent"] {
+    /* background-color: #1c464a; */
+    color: #fcfcfc;
+    font-size: 20px;
+    padding: 20px;
+}
+
+/* 
+div[data-testid="stVerticalBlock"]{
+    background-color: #1c464a;
+    color: #c70606;
+    font-size: 20px;
+} */
