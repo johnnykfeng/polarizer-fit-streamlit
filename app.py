@@ -2,6 +2,8 @@ import streamlit as st
 from streamlit_extras.stylable_container import stylable_container
 import numpy as np
 import matplotlib.pyplot as plt
+import plotly.express as px
+import plotly.graph_objects as go
 from polarizer_fit import (
     fit_malus_law,
     malus_law,
@@ -13,9 +15,12 @@ from polarizer_fit import (
 with open("style.css") as f:
     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
+
 def main():
-    
-    st.title("Data Plotter")
+
+    st.title("Polarizer Calibration")
+    with st.expander("How to use: "):
+        st.write("Instructions coming soon...")
 
     with st.sidebar:
         st.header("-Fit parameters-")
@@ -49,19 +54,25 @@ def main():
     active_conditions = length_condition and none_condition
 
     # initialize figure plot
-    empty_fig, ax = plt.subplots()
-    ax.grid(True, alpha=0.5)
-    st.session_state.fig = empty_fig
+    fig = go.Figure()
+    fig.update_layout(
+        xaxis_title="angle (degrees)",
+        yaxis_title="Intensity",
+        showlegend=False)
+    st.session_state.fig = fig
 
     def show_raw_data():
+
         # Plot the data
-        fig, ax = plt.subplots()
-        ax.grid(True, alpha=0.5)
-        ax.plot(x_values, y_values, "o-")
-        ax.set_xlabel("angle (degrees)")  # Use set_xlabel instead of xlabel
-        ax.set_ylabel("Intensity")  # Use set_ylabel instead of ylabel
-        ax.set_title("show raw data")  # Use set_title instead of title
+        fig.add_trace(go.Scatter(x=x_values,
+                                   y=y_values,
+                                   mode="markers+lines",
+                                   line=dict(color="orange", dash="dash")))
+        fig.update_layout(
+            showlegend=False,
+        )
         st.session_state.fig = fig
+        # st.plotly_chart(fig)
 
     def do_curve_fit():
         popt, pcov = fit_malus_law(x_values, y_values)
@@ -77,26 +88,40 @@ def main():
         )  # Display in sidebar
         st.sidebar.write(f"**crossed_angle:** {crossed_angle:.2f}")
 
+        x_fit = np.arange(x_values[0], x_values[-1], 1)
+        y_fit = malus_law(x_fit, *popt)
+        
         # Plot the data
-        fig, ax = plt.subplots()
-        ax.grid(True, alpha=0.5)
-        ax.plot(x_values, y_values, "o--", label="raw data")
-        y_fit = malus_law(x_values, *popt)
-        ax.plot(x_values, y_fit, linestyle="-", label="fit")
-        ax.set_xlabel("angle (degrees)")  # Use set_xlabel instead of xlabel
-        ax.set_ylabel("Intensity")  # Use set_ylabel instead of ylabel
-        ax.set_title("curve fit")  # Use set_title instead of title
-        ax.legend()
+        fig.update_layout(
+            showlegend=True,  # Add legend
+        )
+        fig.add_trace(
+            go.Scatter(
+                x=x_fit,
+                y=y_fit,
+                mode="lines",
+                name="curve fit",  # Add label for curve fit
+            )
+        )
+        fig.add_trace(
+            go.Scatter(
+                x=x_values,
+                y=y_values,
+                mode="markers+lines",
+                line=dict(color="orange", dash="dash"),
+                name="raw data",  # Add label for raw data
+            )
+        )
         st.session_state.fig = fig
-    
+
     def write_hello():
         st.write('Hello')
-        
+
     def write_bye():
         st.write('Good bye')
 
-    col1, col2, col3, col4 = st.columns(4)
-    
+    col1, col2, _, _ = st.columns(4)
+
     with col1:
         if st.button(
             "Show Raw Data",
@@ -113,7 +138,9 @@ def main():
             do_curve_fit()
 
     container = st.container(border=True)
-    container.pyplot(st.session_state.fig)
+    # container.pyplot(st.session_state.fig)
+    container.plotly_chart(st.session_state.fig)
+
 
 if __name__ == "__main__":
     main()
